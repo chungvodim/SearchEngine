@@ -6,23 +6,21 @@ namespace SearchEngine
     public class Trie
     {
         private Node _root;
-        private int _size;
 
-        public int Size { get => _size; set => _size = value; }
+        public int Size { get; set; }
 
         public Trie()
         {
             _root = new Node(null, ' ', null, 0);
-            _size = 0;
         }
 
-        public Node TraverseFromRoot(string keyPrefix)
+        public Node TraverseFromRoot(string key)
         {
             Node currentNode = _root;
             Node result = currentNode;
-            foreach (char keyPrefixChar in keyPrefix)
+            foreach (char letter in key)
             {
-                currentNode = currentNode.GetChildByKey(keyPrefixChar);
+                currentNode = currentNode.GetChildByKey(letter);
                 if (currentNode == null)
                 {
                     break;
@@ -44,7 +42,7 @@ namespace SearchEngine
                 var child = new Node(current, key[i], null, current.Depth + 1);
                 current.Children.Add(key[i], child);
                 current = child;
-                _size += 1;
+                Size += 1;
             }
 
             // add data for last node
@@ -117,7 +115,7 @@ namespace SearchEngine
                 {
                     Node parent = prefix.Parent;
                     parent.DeleteChildByKey(prefix.Key);
-                    _size -= 1;
+                    Size -= 1;
                     prefix = parent;
                 }
 
@@ -132,7 +130,7 @@ namespace SearchEngine
         public void Flush()
         {
             _root = new Node(null, ' ', null, 0);
-            _size = 0;
+            Size = 0;
             GC.Collect();
         }
 
