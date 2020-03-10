@@ -33,7 +33,7 @@ namespace SearchEngine
         {
             if (_memoryLimit == 0 || GC.GetTotalMemory(false) < _memoryLimit)
             {
-                string wordToInsert = PreProcessWord(key);
+                string wordToInsert = CleanWord(key);
 
                 if (_debug && Count % 50000 == 0)
                 {
@@ -66,7 +66,7 @@ namespace SearchEngine
             return text;
         }
 
-        private string PreProcessWord(string word)
+        private string CleanWord(string word)
         {
             string wordToReturn;
             if (_normalize)
@@ -85,11 +85,11 @@ namespace SearchEngine
 
         public List<string> Get(string key)
         {
-            string wordToSearch = PreProcessWord(key);
+            string wordToSearch = CleanWord(key);
 
             List<string> toReturn = new List<string>();
 
-            string[] data = _trie.GetDataFromExactNode(wordToSearch);
+            string[] data = _trie.QueryFromNode(wordToSearch);
 
             foreach (string element in data)
             {
@@ -99,36 +99,16 @@ namespace SearchEngine
             return toReturn;
         }
 
-        public List<string> QueryDeep(string key)
+        public IEnumerable<string> QueryDeep(string key)
         {
-            string wordToSearch = PreProcessWord(key);
-
-            List<string> toReturn = new List<string>();
-
-            HashSet<string> data = _trie.GetDataFromChildrenNodesRecursive(wordToSearch);
-
-            foreach (string element in data)
-            {
-                toReturn.Add(element);
-            }
-
-            return toReturn;
+            string wordToSearch = CleanWord(key);
+            return _trie.QueryDeep(wordToSearch);
         }
 
-        public List<string> QueryShallow(string key)
+        public IEnumerable<string> QueryShallow(string key)
         {
-            string wordToSearch = PreProcessWord(key);
-
-            List<string> toReturn = new List<string>();
-
-            HashSet<string> data = _trie.GetDataFromChildrenNodes(wordToSearch);
-
-            foreach (string element in data)
-            {
-                toReturn.Add(element);
-            }
-
-            return toReturn;
+            string wordToSearch = CleanWord(key);
+            return _trie.QueryFromChildrenNodes(wordToSearch);
         }
 
         public bool Remove(string key)

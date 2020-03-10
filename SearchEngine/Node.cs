@@ -5,19 +5,12 @@ namespace SearchEngine
 {
     public class Node : ICollection<string>
     {
-        private Node _parent;
-        private char _key;
         private HashSet<string> _data = new HashSet<string>();
-        private List<Node> _children = new List<Node>();
-        private int _depth = 0;
-
-        internal Node Parent { get => _parent; set => _parent = value; }
-        public char Key { get => _key; set => _key = value; }
-        public List<Node> Children { get => _children; set => _children = value; }
-        public int Depth { get => _depth; set => _depth = value; }
-
+        internal Node Parent { get; set; }
+        public char Key { get; set; }
+        public Dictionary<char, Node> Children { get; set; } = new Dictionary<char, Node>();
+        public int Depth { get; set; }
         public int Count => _data.Count;
-
         public bool IsReadOnly => false;
 
         public Node(Node parent, char key, string data = null, int depth = 0)
@@ -33,31 +26,17 @@ namespace SearchEngine
 
         public Node GetChildByKey(char key)
         {
-            for (int i = 0; i < _children.Count; i++)
-            {
-                if (_children[i].Key == key)
-                {
-                    return _children[i];
-                }
-            }
-
-            return null;
+            return Children.TryGetValue(key, out var child) ? child : null;
         }
 
-        public void DeleteChildByKey(char key)
+        public bool DeleteChildByKey(char key)
         {
-            for (int i = 0; i < _children.Count; i++)
-            {
-                if (_children[i].Key == key)
-                {
-                    _children.RemoveAt(i);
-                }
-            }
+            return Children.Remove(key);
         }
 
         public bool IsLeaf()
         {
-            return _children.Count == 0 && _parent != null;
+            return Children.Count == 0 && Parent != null;
         }
 
         public bool ContainsData()
@@ -80,6 +59,10 @@ namespace SearchEngine
             _data.Clear();
         }
 
+        /// <summary>
+        /// Return a clone of data
+        /// </summary>
+        /// <returns></returns>
         public string[] GetData()
         {
             string[] dataToReturn = new string[_data.Count];

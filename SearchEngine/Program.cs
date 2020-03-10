@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace SearchEngine
 {
@@ -44,11 +45,11 @@ namespace SearchEngine
 
         private static void QueryDeep(string key)
         {
-            List<string> results = _SearchEngine.QueryDeep(key);
+            IEnumerable<string> results = _SearchEngine.QueryDeep(key);
 
             if (_SearchEngine.Debug)
             {
-                Console.WriteLine($"{results.Count} results for {key}");
+                Console.WriteLine($"{results.Count()} results for {key}");
             }
 
             foreach (string el in results)
@@ -59,11 +60,11 @@ namespace SearchEngine
 
         private static void QueryShallow(string key)
         {
-            List<string> results = _SearchEngine.QueryShallow(key);
+            IEnumerable<string> results = _SearchEngine.QueryShallow(key);
 
             if (_SearchEngine.Debug)
             {
-                Console.WriteLine($"{results.Count} results for {key}");
+                Console.WriteLine($"{results.Count()} results for {key}");
             }
 
             foreach (string el in results)

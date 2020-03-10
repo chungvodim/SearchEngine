@@ -7,7 +7,6 @@ namespace SearchEngine
     {
         private Node _root;
         private int _size;
-        private HashSet<string> _searchData;
 
         public int Size { get => _size; set => _size = value; }
 
@@ -17,11 +16,10 @@ namespace SearchEngine
             _size = 0;
         }
 
-        public Node TraversePrefix(string keyPrefix)
+        public Node TraverseFromRoot(string keyPrefix)
         {
             Node currentNode = _root;
             Node result = currentNode;
-
             foreach (char keyPrefixChar in keyPrefix)
             {
                 currentNode = currentNode.GetChildByKey(keyPrefixChar);
@@ -37,45 +35,47 @@ namespace SearchEngine
 
         public void Insert(string key, string data)
         {
-            Node commonPrefix = TraversePrefix(key);
-            Node current = commonPrefix;
+            Node current = TraverseFromRoot(key);
 
+            // If it still does not reach the end of key
+            // add middle nodes
             for (int i = current.Depth; i < key.Length; i++)
             {
-                Node newNode = new Node(current, key[i], null, current.Depth + 1);
-                current.Children.Add(newNode);
-                current = newNode;
+                var child = new Node(current, key[i], null, current.Depth + 1);
+                current.Children.Add(key[i], child);
+                current = child;
                 _size += 1;
             }
 
+            // add data for last node
             current.Add(data);
         }
 
         public bool ContainsKey(string key)
         {
-            Node prefix = TraversePrefix(key);
-            return prefix.Depth == key.Length && prefix.ContainsData();
+            Node prefix = TraverseFromRoot(key);
+            return prefix != null && prefix.Depth == key.Length && prefix.ContainsData();
         }
 
-        public string[] GetDataFromExactNode(string key)
+        public string[] QueryFromNode(string key)
         {
             if (ContainsKey(key))
             {
-                Node prefix = TraversePrefix(key);
+                Node prefix = TraverseFromRoot(key);
                 return prefix.GetData();
             }
 
             return new string[] { };
         }
 
-        public HashSet<string> GetDataFromChildrenNodes(string key)
+        public HashSet<string> QueryFromChildrenNodes(string key)
         {
-            Node prefix = TraversePrefix(key);
+            Node prefix = TraverseFromRoot(key);
             HashSet<string> toReturn = new HashSet<string>();
 
-            for (int i = 0; i < prefix.Children.Count; i++)
+            foreach (var childKey in prefix.Children.Keys)
             {
-                string[] currentChildrenData = prefix.Children[i].GetData();
+                string[] currentChildrenData = prefix.Children[childKey].GetData();
                 for (int j = 0; j < currentChildrenData.Length; j++)
                 {
                     toReturn.Add(currentChildrenData[j]);
@@ -86,32 +86,32 @@ namespace SearchEngine
             return toReturn;
         }
 
-        public HashSet<string> GetDataFromChildrenNodesRecursive(string key)
+        public HashSet<string> QueryDeep(string key)
         {
-            _searchData = new HashSet<string>();
-            Node prefix = TraversePrefix(key);
-            GetDataRecursive(prefix);
-            return _searchData;
+            Node prefix = TraverseFromRoot(key);
+            return QueryDeepFromNode(prefix, new HashSet<string>());
         }
 
-        public void GetDataRecursive(Node prefix)
+        public HashSet<string> QueryDeepFromNode(Node prefix, HashSet<string> searchData)
         {
-            for (int i = 0; i < prefix.Children.Count; i++)
-            {
-                GetDataRecursive(prefix.Children[i]);
-            }
-
             foreach (string dataChild in prefix.GetData())
             {
-                _searchData.Add(dataChild);
+                searchData.Add(dataChild);
             }
+
+            foreach (var key in prefix.Children.Keys)
+            {
+                QueryDeepFromNode(prefix.Children[key], searchData);
+            }
+
+            return searchData;
         }
 
         public bool Remove(string key)
         {
             if (ContainsKey(key))
             {
-                Node prefix = TraversePrefix(key);
+                Node prefix = TraverseFromRoot(key);
 
                 while (prefix.IsLeaf())
                 {
