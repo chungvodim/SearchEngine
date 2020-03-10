@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SearchEngine": {
+      "commandName": "Project",
+      "commandLineArgs": "--source ./ --extension *.txt --debug true"
+    }
+  }
+}
