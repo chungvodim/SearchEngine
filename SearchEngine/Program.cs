@@ -99,6 +99,11 @@ namespace SearchEngine
             _SearchEngine.Debug = newStatus;
         }
 
+        private static void SetOrderFixed(bool newStatus)
+        {
+            _SearchEngine.OrderFixed = newStatus;
+        }
+
         private static void ShowInfo()
         {
             Console.WriteLine($"Nodes in trie: {_SearchEngine.Trie.Size}");
@@ -112,6 +117,7 @@ namespace SearchEngine
             bool debug = false;
             int memoryLimit = 0;
             bool normalize = true;
+            bool orderFixed = true;
             string pattern = "[^a-zA-Z0-9 -]";
 
             string initialSource = "";
@@ -156,6 +162,14 @@ namespace SearchEngine
                         }
                     }
 
+                    if (args[i] == "--orderFixed" || args[i] == "-of")
+                    {
+                        if (args[i + 1].IndexOf("-") != 0)
+                        {
+                            orderFixed = args[i + 1] == "true";
+                        }
+                    }
+
                     if (args[i] == "--pattern" || args[i] == "-p")
                     {
                         if (args[i + 1].IndexOf("-") != 0)
@@ -188,7 +202,7 @@ namespace SearchEngine
             }
 
             // sample data http://mlg.ucd.ie/datasets/bbc.html
-            _SearchEngine = new SearchEngine(debug, normalize, pattern, memoryLimit);
+            _SearchEngine = new SearchEngine(debug, normalize, orderFixed, pattern, memoryLimit);
 
             if (initialSource != "")
             {
@@ -244,6 +258,9 @@ namespace SearchEngine
                     break;
                 case "debug":
                     if (command.Length == 2) SetDebug(command[1] == "true");
+                    break;
+                case "orderfixed":
+                    if (command.Length == 2) SetOrderFixed(command[1] == "true");
                     break;
                 default:
                     break;

@@ -6,27 +6,33 @@ namespace SearchEngine
 {
     public class SearchEngine
     {
-        private Trie _trie = new Trie();
-        public Trie Trie {
+        private readonly Trie _trie = new Trie();
+        public Trie Trie
+        {
             get => _trie;
         }
 
         private int _count = 0;
         private bool _debug = false;
+        private bool _orderFixed = true;
         private readonly bool _normalize = true;
         private readonly Regex _rgx;
         private readonly int _memoryLimit = 0;
 
-        public SearchEngine(bool debug = false, bool normalize = true, string normalizePattern = "[^a-zA-Z0-9 -]", int memoryLimit = 0)
+        public SearchEngine(bool debug = false,
+            bool normalize = true,
+            bool orderFixed = true,
+            string normalizePattern = "[^a-zA-Z0-9 -]", int memoryLimit = 0)
         {
             _debug = debug;
             _normalize = normalize;
+            _orderFixed = orderFixed;
             _rgx = new Regex(normalizePattern);
             _memoryLimit = memoryLimit;
         }
 
         public bool Debug { get => _debug; set => _debug = value; }
-
+        public bool OrderFixed { get => _orderFixed; set => _orderFixed = value; }
         public int Count { get => _count; }
 
         private bool Insert(string key, string resourceName)
@@ -40,8 +46,20 @@ namespace SearchEngine
                     Console.WriteLine($"Batch {Count} with total {_trie.Size} nodes with memory size of {GC.GetTotalMemory(false)} bytes ");
                 }
 
-                _count++;
-                _trie.Insert(wordToInsert, resourceName);
+                if (_orderFixed)
+                {
+                    _count++;
+                    _trie.Insert(wordToInsert, resourceName);
+                }
+                else
+                {
+                    var wordsToInsert = GenerateAllPosibleWordsFromOrgin(wordToInsert);
+                    foreach (var word in wordsToInsert)
+                    {
+                        _count++;
+                        _trie.Insert(word, resourceName);
+                    }
+                }
 
                 return true;
             }
@@ -49,6 +67,29 @@ namespace SearchEngine
             {
                 return false;
             }
+        }
+
+        private List<string> GenerateAllPosibleWordsFromOrgin(string set)
+        {
+            return GenerateAllPosibleWords(set, string.Empty);
+        }
+
+        private List<string> GenerateAllPosibleWords(string set, string prefix)
+        {
+            if (set.Length == 0)
+            {
+                return new List<string>() { prefix };
+            }
+
+            var result = new List<string>();
+
+            for (int i = 0; i < set.Length; i++)
+            {
+                var newPrefix = prefix + set[i];
+                result.AddRange(GenerateAllPosibleWords(set.Remove(i, 1), newPrefix));
+            }
+
+            return result;
         }
 
         public void InsertResource(string resourceName, string content)
