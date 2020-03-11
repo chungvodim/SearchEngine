@@ -16,7 +16,7 @@ namespace SearchEngine
             bool normalize = true,
             bool orderFixed = false,
             int numberOfPermutation = 2,
-            string normalizePattern = "[^a-zA-Z0-9 -]", int memoryLimit = 0)
+            string normalizePattern = "[^a-zA-Z0-9-]", int memoryLimit = 0)
         {
             Debug = debug;
             _normalize = normalize;

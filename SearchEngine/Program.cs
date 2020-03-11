@@ -15,7 +15,7 @@ namespace SearchEngine
         private static bool normalize = true;
         private static bool orderFixed = false;
         private static int numberOfPermutation = 2;
-        private static string pattern = "[^a-zA-Z0-9 -]";
+        private static string pattern = "[^a-zA-Z0-9-]";
         private static string initialSource = "";
         private static string initialExtension = "*.*";
 
