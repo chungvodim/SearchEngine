@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace SearchEngine
@@ -7,33 +8,29 @@ namespace SearchEngine
     public class SearchEngine
     {
         private readonly Trie _trie = new Trie();
-        public Trie Trie
-        {
-            get => _trie;
-        }
-
-        private int _count = 0;
-        private bool _debug = false;
-        private bool _orderFixed = true;
-        private readonly bool _normalize = true;
+        private readonly bool _normalize;
         private readonly Regex _rgx;
-        private readonly int _memoryLimit = 0;
+        private readonly int _memoryLimit;
 
         public SearchEngine(bool debug = false,
             bool normalize = true,
             bool orderFixed = true,
+            int numberOfPermutation = 2,
             string normalizePattern = "[^a-zA-Z0-9 -]", int memoryLimit = 0)
         {
-            _debug = debug;
+            Debug = debug;
             _normalize = normalize;
-            _orderFixed = orderFixed;
+            OrderFixed = orderFixed;
+            NumberOfPermutation = numberOfPermutation;
             _rgx = new Regex(normalizePattern);
             _memoryLimit = memoryLimit;
         }
 
-        public bool Debug { get => _debug; set => _debug = value; }
-        public bool OrderFixed { get => _orderFixed; set => _orderFixed = value; }
-        public int Count { get => _count; }
+        public bool Debug { get; set; }
+        public bool OrderFixed { get; set; }
+        public int NumberOfPermutation { get; set; }
+        public int Count { get; private set; }
+        public int TrieSize => _trie.Size;
 
         private bool Insert(string key, string resourceName)
         {
@@ -41,14 +38,15 @@ namespace SearchEngine
             {
                 string wordToInsert = CleanWord(key);
 
-                if (_debug && Count % 50000 == 0)
+                if (Debug && Count % 50000 == 0)
                 {
                     Console.WriteLine($"Batch {Count} with total {_trie.Size} nodes with memory size of {GC.GetTotalMemory(false)} bytes ");
                 }
 
-                if (_orderFixed)
+                if (OrderFixed)
                 {
-                    _count++;
+                    Count++;
+                    Console.WriteLine($"Insert key {wordToInsert} for resource {resourceName}");
                     _trie.Insert(wordToInsert, resourceName);
                 }
                 else
@@ -56,7 +54,8 @@ namespace SearchEngine
                     var wordsToInsert = GenerateAllPosibleWordsFromOrgin(wordToInsert);
                     foreach (var word in wordsToInsert)
                     {
-                        _count++;
+                        Count++;
+                        Console.WriteLine($"Insert key {word} for resource {resourceName}");
                         _trie.Insert(word, resourceName);
                     }
                 }
@@ -71,10 +70,17 @@ namespace SearchEngine
 
         private List<string> GenerateAllPosibleWordsFromOrgin(string set)
         {
-            return GenerateAllPosibleWords(set, string.Empty);
+            if(NumberOfPermutation == 0)
+            {
+                return GenerateAllPermutationWords(set, string.Empty);
+            }
+            else
+            {
+                return GeneratePermutationWordsWithLimit(set, string.Empty);
+            }
         }
 
-        private List<string> GenerateAllPosibleWords(string set, string prefix)
+        private List<string> GenerateAllPermutationWords(string set, string prefix)
         {
             if (set.Length == 0)
             {
@@ -86,7 +92,34 @@ namespace SearchEngine
             for (int i = 0; i < set.Length; i++)
             {
                 var newPrefix = prefix + set[i];
-                result.AddRange(GenerateAllPosibleWords(set.Remove(i, 1), newPrefix));
+                result.AddRange(GenerateAllPermutationWords(set.Remove(i, 1), newPrefix));
+            }
+
+            return result;
+        }
+
+        private List<string> GeneratePermutationWordsWithLimit(string set, string prefix)
+        {
+            if (prefix.Length == NumberOfPermutation)
+            {
+                for (int i = 0; i < set.Length; i++)
+                {
+                    if (set[i] == ' ')
+                    {
+                        set = set.Set(i, prefix[0]);
+                        prefix = prefix.Substring(1);
+                    }
+                }
+                return new List<string>() { set };
+            }
+
+            var result = new List<string>();
+
+            for (int i = 0; i < set.Length; i++)
+            {
+                if (set[i] == ' ') continue;
+                var newPrefix = prefix + set[i];
+                result.AddRange(GeneratePermutationWordsWithLimit(set.Set(i, ' '), newPrefix));
             }
 
             return result;
@@ -159,7 +192,7 @@ namespace SearchEngine
 
         public void Flush()
         {
-            _count = 0;
+            Count = 0;
             _trie.Flush();
         }
     }
