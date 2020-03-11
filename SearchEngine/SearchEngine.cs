@@ -14,7 +14,7 @@ namespace SearchEngine
 
         public SearchEngine(bool debug = false,
             bool normalize = true,
-            bool orderFixed = true,
+            bool orderFixed = false,
             int numberOfPermutation = 2,
             string normalizePattern = "[^a-zA-Z0-9 -]", int memoryLimit = 0)
         {
@@ -68,7 +68,7 @@ namespace SearchEngine
             }
         }
 
-        private List<string> GenerateAllPosibleWordsFromOrgin(string set)
+        private HashSet<string> GenerateAllPosibleWordsFromOrgin(string set)
         {
             if(NumberOfPermutation == 0)
             {
@@ -76,29 +76,32 @@ namespace SearchEngine
             }
             else
             {
-                return GeneratePermutationWordsWithLimit(set, string.Empty);
+                return GeneratePermutationWordsWithLimitDeep(set, string.Empty);
             }
         }
 
-        private List<string> GenerateAllPermutationWords(string set, string prefix)
+        private HashSet<string> GenerateAllPermutationWords(string set, string prefix)
         {
             if (set.Length == 0)
             {
-                return new List<string>() { prefix };
+                return new HashSet<string>() { prefix };
             }
 
-            var result = new List<string>();
+            var result = new HashSet<string>();
 
             for (int i = 0; i < set.Length; i++)
             {
                 var newPrefix = prefix + set[i];
-                result.AddRange(GenerateAllPermutationWords(set.Remove(i, 1), newPrefix));
+                foreach (var item in GenerateAllPermutationWords(set.Remove(i, 1), newPrefix))
+                {
+                    result.Add(item);
+                }
             }
 
             return result;
         }
 
-        private List<string> GeneratePermutationWordsWithLimit(string set, string prefix)
+        private HashSet<string> GeneratePermutationWordsWithLimitDeep(string set, string prefix)
         {
             if (prefix.Length == NumberOfPermutation)
             {
@@ -110,16 +113,19 @@ namespace SearchEngine
                         prefix = prefix.Substring(1);
                     }
                 }
-                return new List<string>() { set };
+                return new HashSet<string>() { set };
             }
 
-            var result = new List<string>();
+            var result = new HashSet<string>();
 
             for (int i = 0; i < set.Length; i++)
             {
                 if (set[i] == ' ') continue;
                 var newPrefix = prefix + set[i];
-                result.AddRange(GeneratePermutationWordsWithLimit(set.Set(i, ' '), newPrefix));
+                foreach (var item in GeneratePermutationWordsWithLimitDeep(set.Set(i, ' '), newPrefix))
+                {
+                    result.Add(item);
+                }
             }
 
             return result;

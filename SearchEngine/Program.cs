@@ -10,19 +10,17 @@ namespace SearchEngine
         private static int _filesCount = 0;
         private static SearchEngine _SearchEngine;
         private static readonly string _prompt = "> ";
+        private static bool debug = false;
+        private static int memoryLimit = 0;
+        private static bool normalize = true;
+        private static bool orderFixed = false;
+        private static int numberOfPermutation = 2;
+        private static string pattern = "[^a-zA-Z0-9 -]";
+        private static string initialSource = "";
+        private static string initialExtension = "*.*";
 
         static int Main(string[] args)
         {
-            bool debug = false;
-            int memoryLimit = 0;
-            bool normalize = true;
-            bool orderFixed = true;
-            int numberOfPermutation = 2;
-            string pattern = "[^a-zA-Z0-9 -]";
-
-            string initialSource = "";
-            string initialExtension = "*.*";
-
             try
             {
                 for (int i = 0; i < args.Length; i++)
